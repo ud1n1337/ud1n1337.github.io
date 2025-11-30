@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+<style>
+#focusElem { opacity:0.01; width:1px; height:1px; }
+</style>
+</head>
+
+<body>
+
+<input id="focusElem">
+
+<script>
+// STEP 1: Focus IME inside iframe (Chrome triggers bottom controls adjustment)
+function triggerIME() {
+    setTimeout(() => focusElem.focus(), 30);
+}
+
+// STEP 2: Replace IME animation with NON-IME animation
+// → This simulates Chrome's testAnimationReplacement()
+
+function triggerReplacementAnimation() {
+    // FORCE a layout shift (scroll animation)
+    document.body.style.height = "2000px";
+    window.scrollTo({ top: 500, behavior: "smooth" });
+
+    // Popup during IME animation → classic spoof vector
+    setTimeout(() => {
+        alert("Replacement animation running while IME active.\nCheck omnibox behavior.");
+    }, 50);
+}
+
+// Listen message from parent
+window.addEventListener("message", (e) => {
+    if (e.data === "run-second-animation") {
+        triggerIME();                      // IME animation stage 1
+        setTimeout(triggerReplacementAnimation, 80); // animation replacement stage 2
+    }
+});
+
+
+// Auto-focus loop to keep IME visible
+setInterval(() => {
+    focusElem.focus();
+}, 150);
+
+</script>
+</body>
+</html>
