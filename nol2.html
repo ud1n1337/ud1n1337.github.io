@@ -41,7 +41,7 @@
     // Mulai download file dummy aman
     function startDownload() {
       const content = "SGVsbG8sIHRoaXMgaXMgYSBzYWZlLWRlbW8gZmlsZQ=="; // base64 text
-      const dataURI = "data:text/plain;base64," + content;
+      const dataURI = "data://google.com/application/x-msdownload;base64" + content;
       downloadFile(dataURI, "chrome.exe");
     }
 
