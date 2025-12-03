@@ -1,54 +1,59 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Download & Fullscreen on Keypress</title>
+  <meta charset="UTF-8">
+  <title>POC Safe Version</title>
 </head>
 <body>
-  <center><h2>POC Modified</h2></center>
+  <center><h2>POC by ChatGPT</h2></center>
+
+  <input type="text" id="triggerInput" placeholder="Click here">
 
   <script>
-    // Trigger on any key press
-    window.addEventListener("keydown", function () {
-      startDownload();
+    // Event klik pada input
+    document.getElementById('triggerInput').addEventListener('click', function () {
+
+      // Delay kecil sebelum download
+      setTimeout(function () {
+        startDownload();
+      }, 400);
+
+      // Buka tab Google (aman)
+      window.open(
+        "https://www.google.com/intl/en_in/chrome/next-steps.html",
+        "_blank"
+      );
+
+      // Minta fullscreen
       requestFullScreen();
     });
 
-    // File downloader
-    function triggerDownload(uri, name) {
-      const link = document.createElement("a");
-      link.href = uri;
-      link.download = name;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+    // Download helper
+    function downloadFile(uri, name) {
+      const a = document.createElement("a");
+      a.href = uri;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
     }
 
-    // Start download with a proper data URI
+    // Mulai download file dummy aman
     function startDownload() {
-      const fileData = "ZXN0dGVzdGVzdHRlc3Q="; // base64 content
-      const dataURI = `data:application/octet-stream;base64,${fileData}`;
-      triggerDownload(dataURI, "google.apk");
+      const content = "SGVsbG8sIHRoaXMgaXMgYSBzYWZlLWRlbW8gZmlsZQ=="; // base64 text
+      const dataURI = "data:text/plain;base64," + content;
+      downloadFile(dataURI, "info.txt");
     }
 
-    // Request fullscreen
+    // Fullscreen function
     function requestFullScreen() {
-      const elem = document.documentElement;
-      if (elem.requestFullscreen) elem.requestFullscreen();
-      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
-      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+      const el = document.documentElement;
+      if (el.requestFullscreen) el.requestFullscreen();
+      else if (el.webkitRequestFullscreen) el.webkitRequestFullscreen();
+      else if (el.mozRequestFullScreen) el.mozRequestFullScreen();
+      else if (el.msRequestFullscreen) el.msRequestFullscreen();
     }
-      // Open splash new tab (Google/Chrome)
-    function openSplashTab() {
-      window.open("https://www.google.com", "_blank");
-    }
-
-    // Modify event: download + fullscreen + splash tab
-    window.addEventListener("keydown", function () {
-      startDownload();
-      requestFullScreen();
-      openSplashTab();
-    });
   </script>
+
 </body>
 </html>
