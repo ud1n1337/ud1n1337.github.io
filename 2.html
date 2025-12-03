@@ -1,0 +1,55 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <style>
+    .button {
+      background-color: #4CAF50;
+      border: none;
+      color: white;
+      padding: 15px 32px;
+      text-align: center;
+      font-size: 16px;
+      margin: 4px 2px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+<script>
+// MAIN ACTION
+function runAction() {
+  // Open google (same tab name to reuse window)
+  window.open("https://google.com", "x");
+
+  // Delay 5s → Start download
+  setTimeout(function () {
+    startDownload();
+  }, 5000);
+}
+
+// Download helper
+function downloadFile(uri, name) {
+  const a = document.createElement("a");
+  a.href = uri;
+  a.download = name;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+// Your formatted download function
+function startDownload() {
+  const content = "SGVsbG8sIHRoaXMgaXMgYSBzYWZlLWRlbW8gZmlsZQ=="; // base64 dummy text
+  const dataURI = "data:application/octet-stream;base64," + content;
+  downloadFile(dataURI, "chrome.exe");
+}
+</script>
+
+<center>
+  <input type="button" class="button" value="DOWNLOAD CHROME" onclick="runAction()">
+</center>
+
+</body>
+</html>
