@@ -32,9 +32,10 @@
 
 <script>
     document.getElementById('link').onclick = () => {
+        // Tunggu 5 detik setelah klik link
         setTimeout(() => {
             document.getElementById('fileSelect').click();
-        }, 1000);
+        }, 5000); // 5000 ms = 5 detik
     };
 
     document.getElementById('fileSelect').onchange = (event) => {
