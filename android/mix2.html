@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html id="htmlid" dir="rtl">
+  <head>
+    <meta charset="utf-8">
+ 
+    <meta name="viewport" content="width=device-width,height=device-height, initial-scale=0.4" />
+
+
+    <title>Autofill POC </title>
+     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
+
+   
+    
+    
+<style>
+
+
+/* Change autocomplete styles in WebKit */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  border: 1px solid black;
+  -webkit-text-fill-color: black;
+  -webkit-box-shadow: 0 0 0px 1000px #000 inset;
+  transition: background-color 2000s ease-in-out 0s;
+}
+
+/* PRESENTATIONAL STYLES */
+
+
+html {
+   
+    font-family: sans-serif;
+    /*background-color: black;*/
+}
+body {
+ 
+ overflow-y: hidden
+background-color: white;
+
+}
+
+</style>
+
+    
+  <style>
+  
+body {
+/*background-color: black;*/
+ overflow-x: scroll;
+}
+     html { height:90%; }
+body { position:absolute; top:0; bottom:0; right:0; left:0px; }
+
+/** This style for Dino Game in Modal**/
+*{
+    padding: 0;
+    margin: 0;
+    overflow-x: hidden;
+    
+    top:200px;float: left;
+   
+}
+
+p{
+    text-align: right;
+}
+
+html { font-family: sans-serif; 
+    
+}
+
+#name {
+ position: absolute;
+ border: 5px solid red;
+ top:3px;
+  height:575px; /**this line to control Height og autofill popup to be like a Line for the sniper 577 tested for pixel6**/ 
+  width:2000px;
+  right: 25;
+ opacity:1;
+  
+}
+
+p { margin-left: 200px; }
+  </style>
+  <style>
+/* width */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}
+
+
+.vl {
+  border-left: 45px solid;
+background-color: #404040;
+
+  height: 600px;
+  position: absolute;
+  margin-left: -3px;
+  
+  top: 0;
+}
+
+
+
+
+</style>
+
+  </head>
+  <body>
+
+
+  <div id="vl" class="vl" style="top:600px;float: left;left:-160%; border-radius:50%;"></div>
+<!-- zoom was 192 -->
+<div id="htmlevent" style='position: absoulte; top: 7%; z-index: 2; color: #999DDD;zoom:192%;'><center>
+<h3 style="top:10px;float: left;color: green; text-shadow: 0px 0px 2px rgba(255,255,255,0.7); border-style: dotted; border-width: 2px; max-width: 500px" id="ar"><u>Tab on Body then  Tab on Cross(+) point </u>  </h3>
+ 
+   <br><br>
+
+<input type="text" id="txtName" style="background: lightgreen; color: black; text-shadow: 0px 0px 2px rgba(255,255,255,0.7); border-style: none; border-width: 2px;  width: 750px; height:50px;  max-width: 700px" readonly="readonly" />
+<br>
+
+
+
+ 
+  
+
+<input name="address-line1" id="address-line1" autocomplete="address-line1" onchange="sendtoparent();" >
+<input name="address-line2"  id="address-line2" autocomplete="address-line2" onchange="sendtoparent();">
+<input name="spoof" id="spoof" autocomplete="country-name">
+
+<input name="spoof" autocomplete="address-level2">
+<input name="state" autocomplete="address-level1" >
+<input name="name" id="name" autofocus=""  autocomplete="name"onfocus="" onblur="sendtoparent();" dir="ltr" ><br><!-- need to work here tomorrow to align and show only one row  and move this input up to make the autofill show only one row below-->
+<input  name="email"id="email" autocomplete="email" onchange="sendtoparent();" >
+<input name="postal-code" autocomplete="postal-code">
+<input name="tel" autocomplete="tel" id="tel" >
+
+<script type="text/javascript">
+    function sendtoparent() {
+
+
+            var txtName =document.getElementById("txtName");
+            var tel =document.getElementById("tel");
+            
+            txtName.value = "Name: " + document.getElementById("name").value + " ,Email: " + document.getElementById("email").value + " ,Country: " + document.getElementById("spoof").value + " ,Address: " + document.getElementById("address-line1").value + ",Phone: " + document.getElementById("tel").value;
+
+    }
+</script>
+
+
+
+    
+  
+ 
+
+  </body>
+ 
+  
+</html>
+
